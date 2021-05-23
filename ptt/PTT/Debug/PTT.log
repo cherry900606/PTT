@@ -1,0 +1,11 @@
+﻿  Board.cpp
+  BoardManager.cpp
+C:\Users\cherry\Desktop\大學\大二下\PTT\ptt\PTT\BoardManager.cpp(122,21): warning C4018: '<': signed/unsigned 不相符
+  main.cpp
+  Post.cpp
+  User.cpp
+  Viewer.cpp
+C:\Users\cherry\Desktop\大學\大二下\PTT\ptt\PTT\Viewer.cpp(15,20): warning C4018: '<': signed/unsigned 不相符
+C:\Users\cherry\Desktop\大學\大二下\PTT\ptt\PTT\Viewer.cpp(28,21): warning C4018: '<': signed/unsigned 不相符
+  正在產生程式碼...
+  PTT.vcxproj -> C:\Users\cherry\Desktop\大學\大二下\PTT\ptt\Debug\PTT.exe
