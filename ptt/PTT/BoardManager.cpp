@@ -16,18 +16,19 @@ BoardManager::BoardManager()
 	}
 	file.close();
 
+	// 系統自動產生管理員
+	User user("admin", "123", ADMIN);
+	this->users.push_back(user);
+
 	// load board information
 	file.open("BoardList.txt");
 	string boardName;
 	while (getline(file, boardName))
 	{
+		// create board
 		Board board(boardName);
 		this->boards.push_back(board);
 	}
-
-	// 系統自動產生管理員
-	User user("admin", "123", ADMIN);
-	this->users.push_back(user);
 }
 void BoardManager::loop()
 {
@@ -102,6 +103,8 @@ void BoardManager::menuLogin()
 			}
 		}
 		checkFile.close();
+		cout << "註冊成功，請重新登入！" << endl;
+		system("pause");
 
 		// 寫入.txt儲存用戶帳密
 		ofstream file("UserInfo.txt", ios::app);
@@ -159,12 +162,56 @@ void BoardManager::selectBoard()
 void BoardManager::selectPost()
 {
 	string cmd;
-	cout << "貼文選擇(回主選單:b): ";
+	cout << "上一頁(b) 新增貼文(n) 選擇貼文(編號): ";
 	cin >> cmd;
 
 	if (cmd == "b")
 	{
 		this->state = SELECT_BOARD;
+	}
+	else if (cmd == "n")
+	{
+		if (users[current_user].permissionLevel == GUEST)
+		{
+			cout << "只有登入的使用者才能新增貼文！" << endl;
+			return;
+		}
+
+		system("cls");
+
+		Post post;
+		post.author = users[current_user].account;
+		cin.ignore();
+		cout << "請輸入標題: ";
+		getline(cin, post.postName);
+		cout << "請輸入內容(以 :wq 結束輸入): " << endl;
+
+		string s;
+		while (getline(cin, s))
+		{
+			if (s == ":wq")
+				break;
+			post.content += s + "\n";
+		}
+		cout << "貼文新增成功" << endl;
+
+		boards[current_board].posts.push_back(post);
+
+		// 寫檔
+		string path = ".\\" + boards[current_board].boardName + "\\" +
+			post.postName + ".txt";
+		ofstream file(path);
+		file << post.author << endl;
+		file << post.content;
+		file << "---" << endl;
+		file.close();
+
+		path= ".\\" + boards[current_board].boardName + "\\" +
+			"postList.txt";
+		ofstream wfile(path, ios::app);
+		wfile << post.postName << endl;
+		wfile.close();
+
 	}
 	else
 	{
@@ -177,15 +224,46 @@ void BoardManager::selectPost()
 void BoardManager::postOperation()
 {
 	string cmd;
-	cout << "回主選單(b):";
+	cout << "上一頁(b) 留言(c): ";
 	cin >> cmd;
 
 	if (cmd == "b")
 	{
 		this->state = BOARD;
 	}
+	else if (cmd == "c")
+	{
+		if (users[current_user].permissionLevel == GUEST)
+		{
+			cout << "只有登入的使用者才能留言！" << endl;
+		}
+		else
+		{
+			int type;
+			cout << "0)推 1)噓文: ";
+			cin >> type;
+			cin.ignore();
+
+			string comment;
+			cout << "留言內容: " ;
+			getline(cin, comment);
+			
+			if (type == 0)
+				comment = "推 " + users[current_user].account + ": " + comment;
+			else
+				comment = "噓 " + users[current_user].account + ": " + comment;
+			boards[current_board].posts[current_post].comment.push_back(comment);
+
+			cout << "留言成功！" << endl;
+
+			// 寫回檔案！！
+			string path = ".\\" + boards[current_board].boardName + "\\" +
+				boards[current_board].posts[current_post].postName + ".txt";
+			ofstream file(path, ios::app);
+			file << comment << endl;
+		}
+	}
 	// 其他操作:
-	//		- 留言(推噓)
 	//		- 編輯
 	//		- 刪除
 }

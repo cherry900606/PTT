@@ -16,6 +16,7 @@ void Viewer::showAllBoard(vector<Board> boards)
 	{
 		cout << "\t " << i + 1 << "  ‧" << boards[i].boardName <<"‧ "<< endl;
 	}
+	cout << endl << endl;
 }
 void Viewer::showBoard(Board board)
 {
@@ -30,9 +31,17 @@ void Viewer::showBoard(Board board)
 			cout << "\t" << i + 1 << "  " << board.posts[i].postName << endl;
 		}
 	}
+	cout << endl << endl;
 }
 void Viewer::showPost(Post post)
 {
-	cout << "標題: " << post.postName << endl;
+	cout << "作者: " << post.author << endl;
+	cout << "標題: " << post.postName << endl << endl;
 	cout << post.content << endl;
+	cout << "---" << endl;
+	for (auto it : post.comment)
+	{
+		cout << it << endl;
+	}
+	cout << endl << endl;
 }

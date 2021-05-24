@@ -8,6 +8,7 @@
 #include "Viewer.h"
 using namespace std;
 
+
 enum BoardState
 {
     MENU,

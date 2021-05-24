@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 using namespace std;
 
 class Post
@@ -7,8 +8,10 @@ class Post
 public:
 	string postName;
 	string content;
-	// string comment
+	string author;
+	vector<string> comment;
+
 	Post();
 	Post(string postName);
-	Post(string postName, string content);
+	Post(string postName, string content, string author);
 };

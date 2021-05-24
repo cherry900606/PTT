@@ -10,8 +10,9 @@ Post::Post(string postName)
 	this->postName = postName;
 	this->content = "";
 }
-Post::Post(string postName, string content)
+Post::Post(string postName, string content, string author)
 {
 	this->postName = postName;
 	this->content = content;
+	this->author = author;
 }
