@@ -5,6 +5,8 @@ BoardManager::BoardManager()
 	// 預設初始狀態
 	this->state = MENU;
 	this->current_user = -1;
+	this->current_board = 0;
+	this->current_post = 0;
 
 	// load user information
 	ifstream file("UserInfo.txt");
@@ -215,6 +217,11 @@ void BoardManager::selectPost()
 	}
 	else
 	{
+		if (stoi(cmd) - 1 >= boards[current_board].posts.size())
+		{
+			cout << "此貼文不存在" << endl;
+			return;
+		}
 		this->current_post = stoi(cmd) - 1;
 		this->state = POST;
 	}
@@ -224,7 +231,7 @@ void BoardManager::selectPost()
 void BoardManager::postOperation()
 {
 	string cmd;
-	cout << "上一頁(b) 留言(c): ";
+	cout << "上一頁(b) 留言(c) 編輯(e) 刪除貼文(d) 刪除留言(t): ";
 	cin >> cmd;
 
 	if (cmd == "b")
@@ -240,7 +247,7 @@ void BoardManager::postOperation()
 		else
 		{
 			int type;
-			cout << "0)推 1)噓文: ";
+			cout << "0)推 1)噓文 2)箭頭: ";
 			cin >> type;
 			cin.ignore();
 
@@ -248,10 +255,33 @@ void BoardManager::postOperation()
 			cout << "留言內容: " ;
 			getline(cin, comment);
 			
+			for (auto it : boards[current_board].posts[current_post].comment)
+			{
+				string author = it, upVote = "推", downVote = "噓";
+				author.erase(0, 3);
+				author = author.substr(0, author.find_first_of(" "));
+				author.pop_back();
+				if (author == users[current_user].account)
+				{
+					if (it[0] == upVote[0] && it[1] == upVote[1] && type == 0)
+					{
+						cout << "不可重複推文！" << endl;
+						return;
+					}
+					else if (it[0] == downVote[0] && it[1] == downVote[1] && type == 1)
+					{
+						cout << "不可重複噓文！" << endl;
+						return;
+					}
+				}
+			}
+
 			if (type == 0)
 				comment = "推 " + users[current_user].account + ": " + comment;
-			else
+			else if (type == 1)
 				comment = "噓 " + users[current_user].account + ": " + comment;
+			else
+				comment = "→ " + users[current_user].account + ": " + comment;
 			boards[current_board].posts[current_post].comment.push_back(comment);
 
 			cout << "留言成功！" << endl;
@@ -263,6 +293,155 @@ void BoardManager::postOperation()
 			file << comment << endl;
 		}
 	}
+	else if (cmd == "e")
+	{
+		if (users[current_user].account == boards[current_board].posts[current_post].author)
+		{
+			string path = ".\\" + boards[current_board].boardName + "\\" +
+				boards[current_board].posts[current_post].postName + ".txt";
+			string cmd;
+			/*cout << "是否編輯標題(Y/N)? ";    <--------先不管標題編輯功能
+			cin >> cmd;
+			if (cmd == "Y")
+			{
+				string title;
+				cin.ignore();
+				cout << "請輸入標題: ";
+				getline(cin, title);
+				boards[current_board].posts[current_post].postName = title;
+			}*/
+
+			cout << "是否編輯內文(Y/N)? ";
+			cin >> cmd;
+			if (cmd == "Y" || cmd == "y")
+			{
+				string content;
+				cout << "請輸入內容(以 :wq 結束):" << endl;
+				boards[current_board].posts[current_post].content = ""; // 先清空
+				while (getline(cin, content))
+				{
+					if (content == ":wq")
+						break;
+					boards[current_board].posts[current_post].content += content + "\n";
+				}
+			}
+			cout << "編輯成功！" << endl;
+
+			// 寫檔
+			ofstream file(path);
+			file << users[current_user].account << endl;
+			file << boards[current_board].posts[current_post].content;
+			file << "---" << endl;
+			for (auto it : boards[current_board].posts[current_post].comment)
+				file << it << endl;
+			file.close();
+		}
+		else
+		{
+			cout << "不能編輯別人的文章！" << endl;
+		}
+	}
+	else if (cmd == "d")
+	{
+		// 自己刪除自己的文章
+		if (users[current_user].account == boards[current_board].posts[current_post].author)
+		{
+			string cmd;
+			cout << "是否刪除文章(Y/N)? ";
+			cin >> cmd;
+
+			if (cmd == "Y" || cmd == "y")
+			{
+				string path = ".\\" + boards[current_board].boardName + "\\" + "postList.txt";
+				string title = boards[current_board].posts[current_post].postName;
+				boards[current_board].posts[current_post].isDeleted = true;
+				boards[current_board].posts[current_post].postName = "文章已被刪除 [" + users[current_user].account + "]";
+
+				// 寫檔
+				ifstream file(path);
+				string s, result;
+				while (getline(file, s))
+				{
+					if (s != title)
+						s += title + "\n";
+				}
+				file.close();
+
+				ofstream wfile(path);
+				wfile << s;
+				wfile.close();
+			}
+		}
+		// 管理員刪除別人的文章
+		else if (users[current_user].permissionLevel == ADMIN)
+		{
+			string cmd;
+			cout << "是否刪除文章(Y/N)? ";
+			cin >> cmd;
+
+			if (cmd == "Y" || cmd == "y")
+			{
+				string reason;
+				cout << "刪除原因: ";
+				cin.ignore();
+				getline(cin, reason);
+
+				string path = ".\\" + boards[current_board].boardName + "\\" + "postList.txt";
+				string title = boards[current_board].posts[current_post].postName;
+				boards[current_board].posts[current_post].isDeleted = true;
+				boards[current_board].posts[current_post].postName = "文章已被管理員刪除 [" + users[current_user].account +
+					"] 原因: " + reason;
+
+				// 寫檔
+				ifstream file(path);
+				string s, result;
+				while (getline(file, s))
+				{
+					if (s != title)
+						s += title + "\n";
+				}
+				file.close();
+
+				ofstream wfile(path);
+				wfile << title;
+				wfile.close();
+			}
+		}
+		else
+		{
+			cout << "不能刪除別人的文章！" << endl;
+		}
+	}
+	else if (cmd == "t")
+	{
+		if (users[current_user].permissionLevel != ADMIN)
+		{
+			cout << "只有管理員能進行此操作！" << endl;
+			return;
+		}
+		int floor;
+		cout << "請輸入刪除樓層: ";
+		cin >> floor;
+		string reason;
+		cout << "請輸入刪除原因: ";
+		cin >> reason;
+
+		boards[current_board].posts[current_post].comment[floor - 1] = "此留言已被管理員刪除 原因: " + reason;
+		/*boards[current_board].posts[current_post].comment.erase(
+			boards[current_board].posts[current_post].comment.begin() + floor - 1);*/
+
+		// 寫檔
+		string path = ".\\" + boards[current_board].boardName + "\\" +
+			boards[current_board].posts[current_post].postName + ".txt";
+		ofstream file(path);
+		file << users[current_user].account << endl;
+		file << boards[current_board].posts[current_post].content;
+		file << "---" << endl;
+		for (auto it : boards[current_board].posts[current_post].comment)
+			file << it << endl;
+		file.close();
+	}
+
 	// 其他操作:
 	//		- 編輯
 	//		- 刪除

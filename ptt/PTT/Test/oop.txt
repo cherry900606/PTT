@@ -1,0 +1,7 @@
+stupid
+oop is too hard.
+
+---
+推 stupid: 真的好難qq
+→ stupid: 測試中文
+推 admin: 中文讀取正常，可能內文沒關係?
