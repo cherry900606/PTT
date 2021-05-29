@@ -1,5 +1,7 @@
 #include "BoardManager.h"
 
+void play1A2B();
+
 BoardManager::BoardManager()
 {
 	// 預設初始狀態
@@ -159,6 +161,12 @@ void BoardManager::selectBoard()
 	{
 		this->current_board = stoi(cmd) - 1;
 		this->state = BOARD;
+		if (current_board == 2)
+		{
+			play1A2B();
+			cin.clear();
+			this->state = SELECT_BOARD;
+		}
 	}
 }
 void BoardManager::selectPost()
@@ -441,8 +449,91 @@ void BoardManager::postOperation()
 			file << it << endl;
 		file.close();
 	}
+}
+void play1A2B() {
+	system("pause");
+	system("cls");
+	cout << "歡迎來到 1A2B 遊戲" << endl;
+	int guess = 0;
+	cout << "請輸入四位整數: ";
+	while (cin >> guess) {
+		int a, b, c, d;
+		int e, f, g, h;
+		int answer = 0;
+		do {
+			srand(time(0));
+			a = rand() % (9) + 1;
+			b = rand() % (10) + 0;
+			c = rand() % (10) + 0;
+			d = rand() % (10) + 0;
+		} while ((a == b) || (a == c) || (a == d) || (b == c) || (b == d) || (c == d));
 
-	// 其他操作:
-	//		- 編輯
-	//		- 刪除
+		answer = (a * 1000) + (b * 100) + (c * 10) + d;
+		cout << "[" << answer << "] ";
+		while (guess != answer) {
+			int aa = 0, bb = 0;
+			h = guess % 10;
+			g = (guess / 10) % 10;
+			f = (guess / 100) % 10;
+			e = guess / 1000;
+			if (guess >= 1000 && guess < 10000 && (e == f || e == g || e == h || f == g || f == h || g == h))
+			{
+				cout << "四位數字需相異，請重新輸入。" << endl;
+				cout << "使用者輸入: ";
+				cin >> guess;
+			}
+			else if (guess < 1000 || guess >= 10000)
+			{
+				cout << "請輸入四位數" << endl;
+				cout << "使用者輸入: ";
+				cin >> guess;
+			}
+			else
+			{
+				if (a == e)
+				{
+					aa = ++aa;
+				}
+				if (b == f)
+				{
+					aa = ++aa;
+				}
+				if (c == g)
+				{
+					aa = ++aa;
+				}
+				if (d == h)
+				{
+					aa = ++aa;
+				}
+				if (e == b || e == c || e == d)
+				{
+					bb = ++bb;
+				}
+				if (f == a || f == c || f == d)
+				{
+					bb = ++bb;
+				}
+				if (g == a || g == b || g == d)
+				{
+					bb = ++bb;
+				}
+				if (h == a || h == b || h == c)
+				{
+					bb = ++bb;
+				}
+				if (aa == 4) {
+					break;
+				}
+				cout << "答案錯誤，請重新輸入。  " << aa << "A" << bb << "B" << endl;
+				cout << "使用者輸入: ";
+				cin >> guess;
+			}
+		}
+		cout << "4A0B." << endl;
+		cout << "Bingo!" << endl;
+		system("pause");
+		system("cls");
+		cout << "使用者輸入: (停止遊戲請按ctrl+z)";
+	}
 }
